@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Servers for {{ game.name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #007BFF;
+        }
+        .server-box {
+            border: 2px solid #007BFF;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        legend {
+            font-weight: bold;
+            color: #007BFF;
+        }
+        .server-details {
+            margin-left: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Active Servers for {{ game.name }}</h1>
+    <h3>Genre: {{ game.genre }}</h3>
+    {% if servers %}
+        {% for server in servers %}
+            <fieldset class="server-box">
+                <legend>Server: {{ game.name }}</legend>
+                <div class="server-details">
+                    <p><strong>IP Address:</strong> {{ server.ip_address }}</p>
+                    <p><strong>Port:</strong> {{ server.port }}</p>
+                    <p><strong>Status:</strong> Online</p>
+                </div>
+            </fieldset>
+        {% endfor %}
+    {% else %}
+        <p>No active servers found for this game.</p>
+    {% endif %}
+</body>
+</html>

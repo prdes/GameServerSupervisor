@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Hosting Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #007BFF;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin: 10px 0;
+        }
+        a {
+            text-decoration: none;
+            color: #007BFF;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Game Hosting Panel</h1>
+    <h2>Quick Links</h2>
+    <ul>
+        <li><a href="{% url 'active-servers' %}">View All Active Servers</a></li>
+    </ul>
+    <h2>Games</h2>
+    <ul>
+        {% for game in games %}
+            <li>
+                <a href="{% url 'game-servers' game.name %}">
+                    View Active Servers for {{ game.name }}
+                </a>
+            </li>
+        {% empty %}
+            <li>No games available.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+
+            
