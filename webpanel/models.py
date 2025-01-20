@@ -15,9 +15,12 @@ class Server(models.Model):
     ]
 
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    ip_address = models.GenericIPAddressField()
-    port = models.PositiveIntegerField()
+    name = models.CharField(max_length=100)
+    ip_address = models.GenericIPAddressField(null=True)
+    port = models.PositiveIntegerField(null=True)
     docker_image = models.CharField(max_length=200, null=True)
+    docker_run_command = models.CharField(max_length=500, blank=True, null=True) 
+    command_args = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='offline')
 
     def __str__(self):
@@ -38,3 +41,16 @@ class Server(models.Model):
         except Exception as e:
             self.status = "offline"  # Fallback in case of unexpected errors
         self.save()
+
+    def get_docker_run_command(self):
+            """Returns the docker run command, falling back to default image if not set."""
+            if self.docker_run_command:
+                # If a custom command is provided, use it
+                return self.docker_run_command
+            else:
+                # Otherwise, use the default image with any provided args TODO: Fixes reqd
+                #  add ports or remove the else logic. 
+                base_command = f"docker run -d {self.image}"
+                if self.command_args:
+                    base_command += " " + self.command_args
+                return base_command

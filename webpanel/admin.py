@@ -13,8 +13,9 @@ def launch_container(modeladmin, request, queryset):
     for server in queryset:
         container_name = f"{server.game.name}_{server.ip_address}_{server.port}"
         result = launch_docker_container(
-            image=server.docker_image,
+            run_command=server.docker_run_command,
             name=container_name,
+            image=server.docker_image,
             ports={f"{server.port}/tcp": server.port},
         )
         server.sync_status()
@@ -38,7 +39,11 @@ def remove_container(modeladmin, request, queryset):
 
 @admin.register(Server)
 class ServerAdmin(admin.ModelAdmin):
-    list_display = ('game', 'ip_address', 'port', 'status', 'docker_image')
+    list_display = ('game', 'name', 'ip_address', 'port', 'status', 'docker_image', 'docker_run_command', 'command_args')
+    search_fields = ('game__name', 'ip_address', 'port')
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
 
     def get_queryset(self, request):
         """Sync status of all servers before rendering the admin list view."""

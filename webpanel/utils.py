@@ -1,14 +1,15 @@
 import docker
 
-def launch_docker_container(image, name, ports=None, environment=None):
+def launch_docker_container(image, run_command, name, ports):
     client = docker.from_env()
     try:
         container = client.containers.run(
-            image,
             name=name,
-            ports=ports,
-            environment=environment,
-            detach=True
+            image=image,
+            # ports=ports,
+            command=run_command,
+            detach=True,
+            network_mode='host'
         )
         return f"Container launched successfully: {container.id}"
     except docker.errors.APIError as e:
