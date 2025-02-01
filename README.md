@@ -7,7 +7,7 @@
 * create venv `python3 -m venv venv`
 * activate `source venv/bin/activate`
 * `pip install -r requirements.txt`
-* will need docker running 
+* will need podman running 
 * `python manage.py migrate`
 * Create admin user: `python manage.py createsuperuser` 
 * `python manage.py runserver`

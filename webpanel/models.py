@@ -28,7 +28,7 @@ class Server(models.Model):
 
     def sync_status(self):
         """Check the real-time status of the Docker container and update the field."""
-        client = podman.PodmanClient(base_url="unix:///run/podman/podman.sock")
+        client = podman.PodmanClient(base_url="unix:///run/user/1000/podman/podman.sock")
         container_name = f"{self.game.name}_{self.ip_address}_{self.port}"
         try:
             container = client.containers.get(container_name)

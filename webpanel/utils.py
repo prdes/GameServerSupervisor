@@ -1,6 +1,6 @@
 import podman
 
-def launch_docker_container(image, run_command, name, ports):
+def launch_pod_container(image, run_command, name, ports):
     client = podman.PodmanClient(base_url="unix:///run/user/1000/podman/podman.sock")
     try:
         container = client.containers.create(
@@ -18,7 +18,7 @@ def launch_docker_container(image, run_command, name, ports):
     except Exception as e:
         return f"Error: {e}"
 
-def stop_docker_container(name):
+def stop_pod_container(name):
     client = podman.PodmanClient(base_url="unix:///run/user/1000/podman/podman.sock")
     try:
         container = client.containers.get(name)
@@ -29,7 +29,7 @@ def stop_docker_container(name):
     except Exception as e:
         return f"Error stopping container {name}: {e}"
 
-def remove_docker_container(name):
+def remove_pod_container(name):
     client = podman.PodmanClient(base_url="unix:///run/user/1000/podman/podman.sock")
     try:
         container = client.containers.get(name)
