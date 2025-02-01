@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Game, Server
-from .utils import launch_docker_container, stop_docker_container, remove_docker_container
+from .utils import launch_pod_container, stop_pod_container, remove_pod_container
+import podman
 
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):
@@ -8,32 +9,40 @@ class GameAdmin(admin.ModelAdmin):
     search_fields = ('name', 'genre')
     ordering = ('name',)
 
-@admin.action(description='Launch Docker Container')
+@admin.action(description='Launch Container')
 def launch_container(modeladmin, request, queryset):
+    client = podman.PodmanClient(base_url="unix:///run/user/1000/podman/podman.sock")
     for server in queryset:
         container_name = f"{server.game.name}_{server.ip_address}_{server.port}"
-        result = launch_docker_container(
-            run_command=server.docker_run_command,
-            name=container_name,
-            image=server.docker_image,
-            ports={f"{server.port}/tcp": server.port},
-        )
-        server.sync_status()
-        modeladmin.message_user(request, f"Container launch result for {server}: {result}")
+        try:
+            # Ensure the command is passed as a list of strings
+            command = server.get_docker_run_command().split() if server.docker_run_command else []
+            container = client.containers.run(
+                server.docker_image,
+                detach=True,
+                name=container_name,
+                command=command,
+                ports={f"{server.port}/tcp": server.port},
+                remove=True,  # Automatically remove on stop
+            )
+            server.sync_status()
+            modeladmin.message_user(request, f"Container launched: {container.id}")
+        except Exception as e:
+            modeladmin.message_user(request, f"Failed to launch {server}: {e}", level="error")
 
-@admin.action(description='Stop Docker Container')
+@admin.action(description='Stop Container')
 def stop_container(modeladmin, request, queryset):
     for server in queryset:
         container_name = f"{server.game.name}_{server.ip_address}_{server.port}"
-        result = stop_docker_container(container_name)
+        result = stop_pod_container(container_name)
         server.sync_status()
         modeladmin.message_user(request, f"Stop container result for {server}: {result}")
 
-@admin.action(description='Remove Docker Container')
+@admin.action(description='Remove Container')
 def remove_container(modeladmin, request, queryset):
     for server in queryset:
         container_name = f"{server.game.name}_{server.ip_address}_{server.port}"
-        result = remove_docker_container(container_name)
+        result = remove_pod_container(container_name)
         server.sync_status()
         modeladmin.message_user(request, f"Remove container result for {server}: {result}")
 
