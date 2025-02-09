@@ -16,9 +16,9 @@ def launch_container(modeladmin, request, queryset):
         container_name = f"{server.game.name}_{server.ip_address}_{server.port}"
         try:
             # Ensure the command is passed as a list of strings
-            command = server.get_docker_run_command().split() if server.docker_run_command else []
+            command = server.get_podman_run_command().split() if server.run_command else []
             container = client.containers.run(
-                server.docker_image,
+                server.image,
                 detach=True,
                 name=container_name,
                 command=command,
@@ -48,7 +48,7 @@ def remove_container(modeladmin, request, queryset):
 
 @admin.register(Server)
 class ServerAdmin(admin.ModelAdmin):
-    list_display = ('game', 'name', 'ip_address', 'port', 'status', 'docker_image', 'docker_run_command', 'command_args')
+    list_display = ('game', 'name', 'ip_address', 'port', 'status', 'image', 'run_command', 'command_args')
     search_fields = ('game__name', 'ip_address', 'port')
 
     def save_model(self, request, obj, form, change):
@@ -62,6 +62,6 @@ class ServerAdmin(admin.ModelAdmin):
         return queryset
 
     list_filter = ('status', 'game')
-    search_fields = ('ip_address', 'game__name', 'docker_image')
+    search_fields = ('ip_address', 'game__name', 'image')
     ordering = ('game', 'ip_address')
     actions = [launch_container, stop_container, remove_container]
