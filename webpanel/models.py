@@ -18,8 +18,8 @@ class Server(models.Model):
     name = models.CharField(max_length=100)
     ip_address = models.GenericIPAddressField(null=True)
     port = models.PositiveIntegerField(null=True)
-    docker_image = models.CharField(max_length=200, null=True)
-    docker_run_command = models.CharField(max_length=500, blank=True, null=True) 
+    image = models.CharField(max_length=200, null=True)
+    run_command = models.CharField(max_length=500, blank=True, null=True) 
     command_args = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='offline')
 
@@ -27,7 +27,7 @@ class Server(models.Model):
         return f"{self.game.name} Server at {self.ip_address}:{self.port}"
 
     def sync_status(self):
-        """Check the real-time status of the Docker container and update the field."""
+        """Check the real-time status of the container and update the field."""
         client = podman.PodmanClient(base_url="unix:///run/user/1000/podman/podman.sock")
         container_name = f"{self.game.name}_{self.ip_address}_{self.port}"
         try:
@@ -42,11 +42,11 @@ class Server(models.Model):
             self.status = "offline"  # Fallback in case of unexpected errors
         self.save()
 
-    def get_docker_run_command(self):
+    def get_podman_run_command(self):
         """Returns the Podman run command, falling back to default image if not set."""
-        if self.docker_run_command:
+        if self.run_command:
             # Return command as a string to be split later
-            return self.docker_run_command
+            return self.run_command
         else:
             # Default command with image and arguments
             base_command = f"{self.image}"
