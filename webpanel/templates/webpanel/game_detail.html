@@ -1,15 +1,31 @@
-<!DOCTYPE html>
-<html>
-<head><title>{{ game.name }}</title></head>
-<body>
-    <h1>{{ game.name }}</h1>
-    <p>{{ game.description }}</p>
-    <h2>Servers</h2>
-    <ul>
-        {% for server in game.servers.all %}
-            <li>{{ server.ip_address }}:{{ server.port }} - {{ server.status }}</li>
-        {% endfor %}
-    </ul>
-    <a href="/">Back to Games</a>
-</body>
-</html>
+{% extends 'webpanel/base.html' %}
+
+{% block title %}{{ game.name }} - Game Details{% endblock %}
+
+{% block content %}
+    <h2>{{ game.name }}</h2>
+
+    <!-- <nav class="sub-nav">
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'games' %}">Games</a>
+        <a href="#">Mods</a>
+        <div class="right-links">
+            <a href="#">Show All Active Servers</a>
+            <a href="#">Request A Server</a>
+        </div>
+    </nav> -->
+
+    <div class="game-detail">
+        <div class="game-image">
+            <img src="{{ game.image_url }}" alt="{{ game.name }}">
+        </div>
+        <div class="game-info">
+            <p>Pull data from some open API to populate information about the game and render it.</p>
+            <ul>
+                <li>🔹 <strong>Active:</strong> Non-full, non-empty servers with connection info, map, and player count</li>
+                <li>🔹 <strong>All Active:</strong> List of all active servers</li>
+                <li>🔹 <strong>Stopped:</strong> Available upon request</li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}

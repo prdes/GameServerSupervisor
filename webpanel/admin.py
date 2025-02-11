@@ -5,7 +5,7 @@ import podman
 
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):
-    list_display = ('name', 'genre')
+    list_display = ('name', 'genre', 'thumbnail')
     search_fields = ('name', 'genre')
     ordering = ('name',)
 
