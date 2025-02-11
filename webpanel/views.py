@@ -11,5 +11,6 @@ def games(request):
     return render(request, 'webpanel/games.html', {'games': games})
 
 def game_detail(request, game_name):
-    game = get_object_or_404(Game, id=game_name)
+    print(f"Looking for game: {game_name}")
+    game = get_object_or_404(Game, name=game_name)
     return render(request, 'webpanel/game_detail.html', {'game': game})
