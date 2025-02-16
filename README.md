@@ -36,5 +36,4 @@ Python 3.10 or above
 ```
 * visit http://localhost:8000 for /public and 
   http://localhost:8000/admin/ to login via the superuser credentials
-* will need docker running 
 
