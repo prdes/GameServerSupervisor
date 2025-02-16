@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
+- [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -28,23 +29,26 @@ Python 3.10 or above
 ```bash
   pip install -r requirements.txt
 ```
-5. Run unit tests:
+5. Run tests:
 ```bash
   ./manage.py test
 ```
-5. Run migrations:
+6. Run migrations:
 ```bash
   ./manage.py migrate
 ```
-6. Create admin user:
+7. Create admin user:
 ```bash
   ./manage.py createsuperuser
 ```
-7. Run server:
+8. Run server:
 ```bash
   ./manage.py runserver
 ```
-* visit http://localhost:8000 for /public and 
+
+## Usage
+
+* Visit http://localhost:8000 for /public and 
   http://localhost:8000/admin/ to login via the superuser credentials
 
 ## Contributing
@@ -58,3 +62,4 @@ Python 3.10 or above
 ## License
 
 This project is licensed under the [AGPL](https://www.gnu.org/licenses/agpl-3.0.html).
+
