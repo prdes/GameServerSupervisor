@@ -1,12 +1,12 @@
 FROM python:3.10-alpine
 
-ARG game_server_directory="/usr/src/GameServerSupervisor"
+ARG supervisor_dir="/usr/src/GameServerSupervisor"
 
-RUN mkdir -p $game_server_directory
+RUN mkdir -p $supervisor_dir
 
-WORKDIR $game_server_directory
+WORKDIR $supervisor_dir
 
-COPY . $game_server_directory
+COPY . $supervisor_dir
 
 RUN pip install --upgrade pip 
 RUN pip install --no-cache-dir -r requirements.txt
