@@ -1,5 +1,12 @@
 # GibCasa GameServerSupervisor
 
+## Table of Contents
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Prerequisites
 
 Python 3.10 or above
@@ -22,19 +29,37 @@ Python 3.10 or above
 ```bash
   pip install -r requirements.txt
 ```
-5. Run migrations:
+5. Run tests:
 ```bash
-  python manage.py migrate
+  ./manage.py test
 ```
-6. Create admin user:
+6. Run migrations:
 ```bash
-  python manage.py createsuperuser
+  ./manage.py migrate
 ```
-7. Run server:
+7. Create admin user:
 ```bash
-  python manage.py runserver
+  ./manage.py createsuperuser
 ```
-* visit http://localhost:8000 for /public and 
+8. Run server:
+```bash
+  ./manage.py runserver
+```
+
+## Usage
+
+* Visit http://localhost:8000 for /public and 
   http://localhost:8000/admin/ to login via the superuser credentials
-* will need docker running 
+
+## Contributing
+
+1. Fork the repository.
+2. Create a new branch: `git checkout -b feature-name`.
+3. Make your changes.
+4. Push your branch: `git push origin feature-name`.
+5. Create a pull request.
+
+## License
+
+This project is licensed under the [AGPL](https://www.gnu.org/licenses/agpl-3.0.html).
 
