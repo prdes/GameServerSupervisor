@@ -1,17 +1,23 @@
 # GibCasa GameServerSupervisor
 
 ## Table of Contents
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
+- [Installation using venv](#installation-using-venv)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Installation using Podman](#installation-using-podman)
+  - [Prerequisites](#prerequisites-1)
+  - [Installation](#installation-1)
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
 
-## Prerequisites
+## Installation using venv
+
+### Prerequisites
 
 Python 3.10 or above
 
-## Installation 
+### Installation
 
 1. Clone the repository:
 ```bash
@@ -42,6 +48,42 @@ Python 3.10 or above
   ./manage.py createsuperuser
 ```
 8. Run server:
+```bash
+  ./manage.py runserver
+```
+## Installation using Podman
+
+### Prerequisites
+
+Podman
+
+### Installation
+
+1. Clone the repository:
+```bash
+  git clone https://git.com.de/GibCasa/GameServerSupervisor
+```
+2. Build the image:
+```bash
+  podman build . -t supervisor-image
+```
+3. Run a container in an interactive shell:
+```bash
+  podman run -it --network=host localhost/supervisor-image sh
+```
+4. Run tests:
+```bash
+  ./manage.py test
+```
+5. Run migrations:
+```bash
+  ./manage.py migrate
+```
+6. Create admin user:
+```bash
+  ./manage.py createsuperuser
+```
+7. Run server:
 ```bash
   ./manage.py runserver
 ```
