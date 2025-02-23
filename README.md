@@ -87,6 +87,13 @@ Podman
 ```bash
   ./manage.py runserver
 ```
+-------------
+
+To live sync host directory with container folder, in Step 3:
+```bash
+podman run --network=host -itv /host/src/path:/usr/src/GameServerSupervisor supervisor-image sh
+```
+`/host/src/path` is the absolute path to the repository in the host machine.
 
 ## Usage
 
