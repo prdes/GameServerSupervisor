@@ -13,4 +13,10 @@ def games(request):
 def game_detail(request, game_name):
     print(f"Looking for game: {game_name}")
     game = get_object_or_404(Game, name=game_name)
-    return render(request, 'webpanel/game_detail.html', {'game': game})
+    servers = Server.objects.filter(game=game)
+    for server in servers:
+        server.sync_status()
+    dormant_servers = servers.filter(status='offline')
+    active_servers = servers.filter(status='online') 
+    return render(request, 'webpanel/game_detail.html', {'game': game,
+                'active_servers': active_servers, 'dormant_servers': dormant_servers})

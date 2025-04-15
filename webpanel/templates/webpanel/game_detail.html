@@ -16,16 +16,30 @@
     </nav> -->
 
     <div class="game-detail">
-        <div class="game-image">
-            <img src="{{ game.image_url }}" alt="{{ game.name }}">
+        <div class="game-box" style="width: 150px; text-align: center;">
+            <a href="{% url 'game_detail' game.name %}">
+                <img src="{{ game.thumbnail.url }}" alt="{{ game.name }}" style="width: 100%; height: auto;">
+                <p>{{ game.name }}</p>
+            </a>
+        </div>
+        <div class="active-servers">
+            {% if active_servers %}
+            {% for server in active_servers %}
+                <fieldset class="server-box">
+                    <legend>Server: {{ game.name }}</legend>
+                    <div class="server-details">
+                        <p><strong>IP Address:</strong> {{ server.ip_address }}</p>
+                        <p><strong>Port:</strong> {{ server.port }}</p>
+                        <p><strong>Status:</strong> Online</p>
+                    </div>
+                </fieldset>
+            {% endfor %}
+            {% else %}
+                <p>No active servers found for this game.</p>
+            {% endif %}
         </div>
         <div class="game-info">
             <p>Pull data from some open API to populate information about the game and render it.</p>
-            <ul>
-                <li>🔹 <strong>Active:</strong> Non-full, non-empty servers with connection info, map, and player count</li>
-                <li>🔹 <strong>All Active:</strong> List of all active servers</li>
-                <li>🔹 <strong>Stopped:</strong> Available upon request</li>
-            </ul>
         </div>
     </div>
 {% endblock %}
