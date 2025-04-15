@@ -1,10 +1,23 @@
 # GibCasa GameServerSupervisor
 
-## Prerequisites
+## Table of Contents
+- [Installation using venv](#installation-using-venv)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Installation using Podman](#installation-using-podman)
+  - [Prerequisites](#prerequisites-1)
+  - [Installation](#installation-1)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Installation using venv
+
+### Prerequisites
 
 Python 3.10 or above
 
-## Installation 
+### Installation
 
 1. Clone the repository:
 ```bash
@@ -22,19 +35,80 @@ Python 3.10 or above
 ```bash
   pip install -r requirements.txt
 ```
+5. Run tests:
+```bash
+  ./manage.py test
+```
+6. Run migrations:
+```bash
+  ./manage.py migrate
+```
+7. Create admin user:
+```bash
+  ./manage.py createsuperuser
+```
+8. Run server:
+```bash
+  ./manage.py runserver
+```
+## Installation using Podman
+
+### Prerequisites
+
+Podman
+
+### Installation
+
+1. Clone the repository:
+```bash
+  git clone https://git.com.de/GibCasa/GameServerSupervisor
+```
+2. Build the image:
+```bash
+  podman build . -t supervisor-image
+```
+3. Run a container in an interactive shell:
+```bash
+  podman run -it --network=host localhost/supervisor-image sh
+```
+4. Run tests:
+```bash
+  ./manage.py test
+```
 5. Run migrations:
 ```bash
-  python manage.py migrate
+  ./manage.py migrate
 ```
 6. Create admin user:
 ```bash
-  python manage.py createsuperuser
+  ./manage.py createsuperuser
 ```
 7. Run server:
 ```bash
-  python manage.py runserver
+  ./manage.py runserver
 ```
-* visit http://localhost:8000 for /public and 
+-------------
+
+To live sync host directory with container folder, in Step 3:
+```bash
+podman run --network=host -itv /host/src/path:/usr/src/GameServerSupervisor supervisor-image sh
+```
+`/host/src/path` is the absolute path to the repository in the host machine.
+
+## Usage
+
+* Visit http://localhost:8000 for /public and 
   http://localhost:8000/admin/ to login via the superuser credentials
-* will need docker running 
+
+## Contributing
+
+1. Fork the repository.
+2. Create a new branch: `git checkout -b feature-name`.
+3. Make your changes.
+4. Push your branch: `git push origin feature-name`.
+5. Create a pull request.
+
+## License
+
+This project is licensed under the [AGPL](https://www.gnu.org/licenses/agpl-3.0.html).
 
