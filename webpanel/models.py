@@ -1,5 +1,8 @@
 from django.db import models
 import podman
+import shlex
+import re
+
 
 class Game(models.Model):
     name = models.CharField(max_length=100)
@@ -14,7 +17,7 @@ class Server(models.Model):
         ('online', 'Online'),
         ('offline', 'Offline'),
     ]
-
+    last_log = models.TextField(blank=True, null=True)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     ip_address = models.GenericIPAddressField(null=True)
@@ -22,6 +25,7 @@ class Server(models.Model):
     image = models.CharField(max_length=200, null=True)
     run_command = models.CharField(max_length=500, blank=True, null=True) 
     command_args = models.TextField(blank=True, null=True)
+    container_id = models.CharField(max_length=64, blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='offline')
 
     def __str__(self):
@@ -29,10 +33,10 @@ class Server(models.Model):
 
     def sync_status(self):
         """Check the real-time status of the container and update the field."""
+        safe_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', self.name)
         client = podman.PodmanClient(base_url="unix:///run/user/1000/podman/podman.sock")
-        container_name = f"{self.game.name}_{self.ip_address}_{self.port}"
         try:
-            container = client.containers.get(container_name)
+            container = client.containers.get(safe_name)
             if container.status == "running":
                 self.status = "online"
             else:
@@ -40,17 +44,77 @@ class Server(models.Model):
         except podman.errors.NotFound:
             self.status = "offline"
         except Exception as e:
-            self.status = "offline"  # Fallback in case of unexpected errors
+            self.status = "offline"
         self.save()
 
-    def get_podman_run_command(self):
-        """Returns the Podman run command, falling back to default image if not set."""
-        if self.run_command:
-            # Return command as a string to be split later
-            return self.run_command
-        else:
-            # Default command with image and arguments
-            base_command = f"{self.image}"
-            if self.command_args:
-                base_command += " " + self.command_args
-            return base_command
+    def launch_pod_container(self):
+        safe_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', self.name)  # sanitize name
+        client = podman.PodmanClient(base_url="unix:///run/user/1000/podman/podman.sock")
+        try:
+            container = client.containers.create(
+                name=safe_name,
+                image=self.image,
+                ports={
+                    f'{self.port}/udp': ('0.0.0.0', self.port),
+                    f'{self.port}/tcp': ('0.0.0.0', self.port),
+                },
+                command=shlex.split(self.run_command),
+                detach=True,
+            )
+            container.start()
+            self.container_id = container.id
+            self.last_log = f"Launched container {container.id}"
+            self.is_running = True
+            self.sync_status()
+            self.save()
+            return f"Container launched successfully: {container.id}"
+        except podman.errors.APIError as e:
+            self.last_log = f"API Error: {str(e)}"
+            self.save()
+            return f"API Error: {e}"
+        except Exception as e:
+            self.last_log = f"Error: {str(e)}"
+            self.save()
+            return f"Error: {e}"
+
+    def stop_pod_container(self):
+        safe_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', self.name)
+        client = podman.PodmanClient(base_url="unix:///run/user/1000/podman/podman.sock")
+        try:
+            container = client.containers.get(safe_name)
+            container.stop()
+            self.status = "offline"
+            self.last_log = f"Stopped container {container.id}"
+            self.sync_status()
+            self.save()
+            return f"Container stopped successfully: {container.id}"
+        except podman.errors.NotFound:
+            self.last_log = f"Container '{safe_name}' not found"
+            self.save()
+            return f"Error: Container '{safe_name}' not found"
+        except Exception as e:
+            self.last_log = f"Error stopping container: {str(e)}"
+            self.save()
+            return f"Error: {e}"
+
+    def remove_pod_container(self):
+        safe_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', self.name)
+        client = podman.PodmanClient(base_url="unix:///run/user/1000/podman/podman.sock")
+        try:
+            container = client.containers.get(safe_name)
+            container.remove(force=True)
+            self.status = "offline"
+            self.container_id = None
+            self.last_log = f"Removed container {safe_name}"
+            self.sync_status()
+            self.save()
+            return f"Container removed successfully: {safe_name}"
+        except podman.errors.NotFound:
+            self.last_log = f"Container '{safe_name}' not found"
+            self.save()
+            return f"Error: Container '{safe_name}' not found"
+        except Exception as e:
+            self.last_log = f"Error removing container: {str(e)}"
+            self.save()
+            return f"Error: {e}"
+

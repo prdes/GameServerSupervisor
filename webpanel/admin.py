@@ -1,50 +1,33 @@
 from django.contrib import admin
 from .models import Game, Server
-from .utils import launch_pod_container, stop_pod_container, remove_pod_container
+from .utils import stop_pod_container, remove_pod_container
 import podman
+from django.contrib import messages
+
+
+@admin.action(description="Launch selected servers")
+def launch_servers(modeladmin, request, queryset):
+    for server in queryset:
+        result = server.launch_pod_container()
+        messages.info(request, f"{server.name}: {result}")
+
+@admin.action(description="Stop selected servers")
+def stop_servers(modeladmin, request, queryset):
+    for server in queryset:
+        result = server.stop_pod_container()
+        messages.info(request, f"{server.name}: {result}")
+
+@admin.action(description="Remove selected servers")
+def remove_servers(modeladmin, request, queryset):
+    for server in queryset:
+        result = server.remove_pod_container()
+        messages.info(request, f"{server.name}: {result}")
 
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):
     list_display = ('name', 'genre', 'thumbnail')
     search_fields = ('name', 'genre')
     ordering = ('name',)
-
-@admin.action(description='Launch Container')
-def launch_container(modeladmin, request, queryset):
-    client = podman.PodmanClient(base_url="unix:///run/user/1000/podman/podman.sock")
-    for server in queryset:
-        container_name = f"{server.game.name}_{server.ip_address}_{server.port}"
-        try:
-            # Ensure the command is passed as a list of strings
-            command = server.get_podman_run_command().split() if server.run_command else []
-            container = client.containers.run(
-                server.image,
-                detach=True,
-                name=container_name,
-                command=command,
-                ports={f"{server.port}/tcp": server.port},
-                remove=True,  # Automatically remove on stop
-            )
-            server.sync_status()
-            modeladmin.message_user(request, f"Container launched: {container.id}")
-        except Exception as e:
-            modeladmin.message_user(request, f"Failed to launch {server}: {e}", level="error")
-
-@admin.action(description='Stop Container')
-def stop_container(modeladmin, request, queryset):
-    for server in queryset:
-        container_name = f"{server.game.name}_{server.ip_address}_{server.port}"
-        result = stop_pod_container(container_name)
-        server.sync_status()
-        modeladmin.message_user(request, f"Stop container result for {server}: {result}")
-
-@admin.action(description='Remove Container')
-def remove_container(modeladmin, request, queryset):
-    for server in queryset:
-        container_name = f"{server.game.name}_{server.ip_address}_{server.port}"
-        result = remove_pod_container(container_name)
-        server.sync_status()
-        modeladmin.message_user(request, f"Remove container result for {server}: {result}")
 
 @admin.register(Server)
 class ServerAdmin(admin.ModelAdmin):
@@ -64,4 +47,4 @@ class ServerAdmin(admin.ModelAdmin):
     list_filter = ('status', 'game')
     search_fields = ('ip_address', 'game__name', 'image')
     ordering = ('game', 'ip_address')
-    actions = [launch_container, stop_container, remove_container]
+    actions = [ stop_servers, remove_servers, launch_servers]
