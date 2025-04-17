@@ -1,0 +1,20 @@
+{% extends 'webpanel/base.html' %}
+
+{% block title %}Games - Game Servers{% endblock %}
+
+{% block content %}
+    <h2>Games</h2>
+
+    <div class="game-grid" style="display: flex; flex-wrap: wrap; gap: 10px;">
+        {% for game in games %}
+            <div class="game-box" style="width: 150px; text-align: center;">
+                <a href="{% url 'game_detail' game.name %}">
+                    <img src="{{ game.thumbnail.url }}" alt="{{ game.name }}" style="width: 100%; height: auto;">
+                    <p>{{ game.name }}</p>
+                </a>
+            </div>
+        {% empty %}
+            <p>No games available.</p>
+        {% endfor %}
+    </div>
+{% endblock %}
