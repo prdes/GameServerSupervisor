@@ -1,9 +1,6 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from .models import Game, Server
-from .utils import stop_pod_container, remove_pod_container
 import podman
-from django.contrib import messages
-
 
 @admin.action(description="Launch selected servers")
 def launch_servers(modeladmin, request, queryset):
