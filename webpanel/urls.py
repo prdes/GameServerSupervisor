@@ -7,4 +7,4 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('games/', views.games, name='games'),
     path('games/<str:game_name>/', views.game_detail, name='game_detail'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

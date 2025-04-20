@@ -7,8 +7,7 @@ from typing import Optional,List
 class Game(models.Model):
     name = models.CharField(max_length=100)
     genre = models.CharField(max_length=50, blank=True, null=True)
-    thumbnail= models.ImageField(
-        upload_to='media/game_thumbnails/', null=True, blank=True)
+    thumbnail = models.ImageField(upload_to='game_thumbnails/', null=True, blank=True)
 
     def __str__(self) -> str:
         return self.name
