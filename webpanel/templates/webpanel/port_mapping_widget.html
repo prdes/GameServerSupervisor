@@ -1,0 +1,45 @@
+<div id="{{ widget.name }}_container">
+    {% for k, v in widget.value.items %}
+    <div class="port-entry">
+      <input type="text" name="{{ widget.name }}_key[]" value="{{ k }}" placeholder="port/proto">
+      <input type="number" name="{{ widget.name }}_value[]" value="{{ v }}" placeholder="host port">
+      <button type="button" class="remove-port-entry">×</button>
+    </div>
+    {% empty %}
+    <div class="port-entry">
+      <input type="text" name="{{ widget.name }}_key[]" placeholder="port/proto">
+      <input type="number" name="{{ widget.name }}_value[]" placeholder="host port">
+      <button type="button" class="remove-port-entry">×</button>
+    </div>
+    {% endfor %}
+  </div>
+  <button type="button" id="add-port-{{ widget.name|slugify }}">+ Add</button>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const container = document.getElementById("{{ widget.name }}_container");
+      const addButton = document.getElementById("add-port-{{ widget.name|slugify }}");
+      addButton.addEventListener("click", () => {
+        const div = document.createElement("div");
+        div.className = "port-entry";
+        div.innerHTML = `
+          <input type="text" name="{{ widget.name }}_key[]" placeholder="port/proto">
+          <input type="number" name="{{ widget.name }}_value[]" placeholder="host port">
+          <button type="button" class="remove-port-entry">×</button>
+        `;
+        container.appendChild(div);
+      });
+      container.addEventListener("click", (e) => {
+        if (e.target.classList.contains("remove-port-entry")) {
+          e.target.parentElement.remove();
+        }
+      });
+    });
+  </script>
+  <style>
+    .port-entry {
+      margin-bottom: 5px;
+    }
+    .port-entry input {
+      margin-right: 5px;
+    }
+  </style>

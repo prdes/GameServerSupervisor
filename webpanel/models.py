@@ -21,7 +21,7 @@ class Server(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     ip_address = models.GenericIPAddressField(null=True)
-    port = models.PositiveIntegerField(null=True)
+    port = models.JSONField(default=dict, blank=True)
     image = models.CharField(max_length=200, null=True)
     run_command = models.CharField(max_length=500, blank=True, null=True) 
     command_args = models.TextField(blank=True, null=True)
@@ -57,22 +57,28 @@ class Server(models.Model):
             self.status = "offline"
         self.save()
 
+    def get_ports_display(self):
+        return ", ".join(f"{k}→{v}" for k, v in self.port.items())
+    get_ports_display.short_description = "Ports"  # display name in admin
+
+
     def launch_pod_container(self) -> str:
         try:
+            port_bindings = {
+                container_port: ('0.0.0.0', host_port)
+                for container_port, host_port in self.port.items()
+            }
+
             container = self._get_podman_client().containers.create(
                 name=self.safe_name,
                 image=self.image,
-                ports={
-                    f'{self.port}/udp': ('0.0.0.0', self.port),
-                    f'{self.port}/tcp': ('0.0.0.0', self.port),
-                },
+                ports=port_bindings,
                 command=shlex.split(self.run_command),
                 detach=True,
             )
             container.start()
             self.container_id = container.id
             self.last_log = f"Launched container {container.id}"
-            # self.is_running = True
             self.sync_status()
             self.save()
             return f"Container launched successfully: {container.id}"

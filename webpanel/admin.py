@@ -1,7 +1,27 @@
 from django.contrib import admin, messages
 from .models import Game, Server
-import podman
+from django import forms
+from .widgets import PortMappingWidget
 
+class ServerForm(forms.ModelForm):
+    class Meta:
+        model = Server
+        fields = "__all__"
+        widgets = {
+            "port": PortMappingWidget(),
+        }
+    def clean_port(self):
+        keys = self.data.getlist("port_key")
+        values = self.data.getlist("port_value")
+
+        try:
+            return {
+                k.strip(): int(v)
+                for k, v in zip(keys, values)
+                if k.strip() and v.strip()
+            }
+        except ValueError:
+            raise forms.ValidationError("Port values must be integers.")
 @admin.action(description="Launch selected servers")
 def launch_servers(modeladmin, request, queryset):
     for server in queryset:
@@ -26,10 +46,19 @@ class GameAdmin(admin.ModelAdmin):
     search_fields = ('name', 'genre')
     ordering = ('name',)
 
+
 @admin.register(Server)
 class ServerAdmin(admin.ModelAdmin):
-    list_display = ('game', 'name', 'ip_address', 'port', 'status', 'image', 'run_command', 'command_args')
+    form = ServerForm
+    list_display = (
+        'game', 'name', 'ip_address', 'get_ports_display', 'status', 'image', 'run_command', 'command_args'
+    )
     search_fields = ('game__name', 'ip_address', 'port')
+    list_filter = ('status', 'game')
+    ordering = ('game', 'ip_address')
+    actions = [stop_servers, remove_servers, launch_servers]
+
+    readonly_fields = ('get_ports_display',)
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
@@ -41,7 +70,3 @@ class ServerAdmin(admin.ModelAdmin):
             server.sync_status()
         return queryset
 
-    list_filter = ('status', 'game')
-    search_fields = ('ip_address', 'game__name', 'image')
-    ordering = ('game', 'ip_address')
-    actions = [ stop_servers, remove_servers, launch_servers]
