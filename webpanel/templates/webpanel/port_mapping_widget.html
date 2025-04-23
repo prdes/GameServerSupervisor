@@ -1,38 +1,40 @@
-<!-- <div id="{{ widget.name }}_container">
-    {% if widget.value %}
-      {% for k, v in widget.value.items %}
-        <div class="port-entry">
-          <input type="text" name="{{ widget.name }}_key" value="{{ k }}" placeholder="port/proto">
-          <input type="number" name="{{ widget.name }}_value" value="{{ v }}" placeholder="host port">
-          <button type="button" onclick="this.parentElement.remove()">×</button>
-        </div>
-      {% endfor %}
-    {% else %}
-      <div class="port-entry">
-        <input type="text" name="{{ widget.name }}_key" placeholder="port/proto">
-        <input type="number" name="{{ widget.name }}_value" placeholder="host port">
-        <button type="button" onclick="this.parentElement.remove()">×</button>
-      </div>
-    {% endif %}
-    
-    <div id="{{ widget.name }}_add"></div>
-    <button type="button" onclick="addPortField_{{ widget.name|slugify }}()">+ Add</button>
+<div id="{{ widget.name }}_container">
+    {% for k, v in widget.value.items %}
+    <div class="port-entry">
+      <input type="text" name="{{ widget.name }}_key[]" value="{{ k }}" placeholder="port/proto">
+      <input type="number" name="{{ widget.name }}_value[]" value="{{ v }}" placeholder="host port">
+      <button type="button" class="remove-port-entry">×</button>
+    </div>
+    {% empty %}
+    <div class="port-entry">
+      <input type="text" name="{{ widget.name }}_key[]" placeholder="port/proto">
+      <input type="number" name="{{ widget.name }}_value[]" placeholder="host port">
+      <button type="button" class="remove-port-entry">×</button>
+    </div>
+    {% endfor %}
   </div>
-  
+  <button type="button" id="add-port-{{ widget.name|slugify }}">+ Add</button>
   <script>
-    function addPortField_{{ widget.name|slugify }}() {
-      const container = document.getElementById("{{ widget.name }}_add");
-      const div = document.createElement("div");
-      div.classList.add("port-entry");
-      div.innerHTML = `
-        <input type="text" name="{{ widget.name }}_key" placeholder="port/proto">
-        <input type="number" name="{{ widget.name }}_value" placeholder="host port">
-        <button type="button" onclick="this.parentElement.remove()">×</button>
-      `;
-      container.appendChild(div);
-    }
+    document.addEventListener("DOMContentLoaded", function () {
+      const container = document.getElementById("{{ widget.name }}_container");
+      const addButton = document.getElementById("add-port-{{ widget.name|slugify }}");
+      addButton.addEventListener("click", () => {
+        const div = document.createElement("div");
+        div.className = "port-entry";
+        div.innerHTML = `
+          <input type="text" name="{{ widget.name }}_key[]" placeholder="port/proto">
+          <input type="number" name="{{ widget.name }}_value[]" placeholder="host port">
+          <button type="button" class="remove-port-entry">×</button>
+        `;
+        container.appendChild(div);
+      });
+      container.addEventListener("click", (e) => {
+        if (e.target.classList.contains("remove-port-entry")) {
+          e.target.parentElement.remove();
+        }
+      });
+    });
   </script>
-  
   <style>
     .port-entry {
       margin-bottom: 5px;
@@ -41,61 +43,3 @@
       margin-right: 5px;
     }
   </style>
-   -->
-
-<div id="{{ widget.name }}_container">
-    {% if widget.value %}
-    {% for k, v in widget.value.items %}
-    <div class="port-entry">
-        <input type="text" name="{{ widget.name }}_key" value="{{ k }}" placeholder="port/proto">
-        <input type="number" name="{{ widget.name }}_value" value="{{ v }}" placeholder="host port">
-        <button type="button" class="remove-port-entry">×</button>
-    </div>
-    {% endfor %}
-    {% else %}
-    <div class="port-entry">
-        <input type="text" name="{{ widget.name }}_key" placeholder="port/proto">
-        <input type="number" name="{{ widget.name }}_value" placeholder="host port">
-        <button type="button" class="remove-port-entry">×</button>
-    </div>
-    {% endif %}
-
-    <div id="{{ widget.name }}_add"></div>
-    <button type="button" id="add-port-{{ widget.name|slugify }}">+ Add</button>
-</div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const addButton = document.getElementById("add-port-{{ widget.name|slugify }}");
-        const container = document.getElementById("{{ widget.name }}_add");
-
-        // Event listener for the add button
-        addButton.addEventListener("click", function () {
-            const div = document.createElement("div");
-            div.classList.add("port-entry");
-            div.innerHTML = `
-        <input type="text" name="{{ widget.name }}_key" placeholder="port/proto">
-        <input type="number" name="{{ widget.name }}_value" placeholder="host port">
-        <button type="button" class="remove-port-entry">×</button>
-      `;
-            container.appendChild(div);
-        });
-
-        // Delegate event listener for the remove button
-        container.addEventListener("click", function (e) {
-            if (e.target && e.target.classList.contains("remove-port-entry")) {
-                e.target.parentElement.remove();
-            }
-        });
-    });
-</script>
-
-<style>
-    .port-entry {
-        margin-bottom: 5px;
-    }
-
-    .port-entry input {
-        margin-right: 5px;
-    }
-</style>
