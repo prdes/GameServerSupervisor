@@ -8,6 +8,13 @@ class Game(models.Model):
     name = models.CharField(max_length=100)
     genre = models.CharField(max_length=50, blank=True, null=True)
     thumbnail = models.ImageField(upload_to='game_thumbnails/', null=True, blank=True)
+    query_protocol=models.CharField(max_length=20, null=True)
+    default_query_port_key = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        help_text="Default key (e.g., '27015/udp' or '27910') used for status queries within the Server's port mappings."
+    )
 
     def __str__(self) -> str:
         return self.name

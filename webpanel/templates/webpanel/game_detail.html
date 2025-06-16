@@ -3,34 +3,195 @@
 {% block title %}{{ game.name }} - Game Details{% endblock %}
 
 {% block content %}
-    <h2>{{ game.name }}</h2>
+<h2>{{ game.name }}</h2>
 
+{# --- Add the CSS from previous example for .server-box etc. --- #}
+<style>
+    .server-box {
+        border: 1px solid #555;
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: #2a2a2a;
+        border-radius: 4px;
+    }
 
-    <div class="game-detail">
-        <div class="game-box" style="width: 150px; text-align: center;">
-            <a href="{% url 'game_detail' game.name %}">
-                <img src="{{ game.thumbnail.url }}" alt="{{ game.name }}" style="width: 100%; height: auto;">
-                <p>{{ game.name }}</p>
-            </a>
-        </div>
-        <div class="active-servers">
-            {% if active_servers %}
-            {% for server in active_servers %}
-                <fieldset class="server-box">
-                    <legend>Server: {{ game.name }}</legend>
-                    <div class="server-details">
-                        <p><strong>IP Address:</strong> {{ server.ip_address }}</p>
-                        <p><strong>Port:</strong> {{ server.port }}</p>
-                        <p><strong>Status:</strong> Online</p>
-                    </div>
-                </fieldset>
-            {% endfor %}
-            {% else %}
-                <p>No active servers found for this game.</p>
-            {% endif %}
-        </div>
-        <div class="game-info">
-            <p>Pull data from some open API to populate information about the game and render it.</p>
-        </div>
+    .server-box legend {
+        font-weight: bold;
+        color: #0f0;
+        /* Lime green */
+        padding: 0 5px;
+    }
+
+    .server-details p {
+        margin: 6px 0;
+        font-size: 0.95em;
+    }
+
+    .live-stats {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px dashed #444;
+        color: #eee;
+    }
+
+    .live-stats strong {
+        color: #bbb;
+        width: 120px;
+        display: inline-block;
+    }
+
+    /* Align labels */
+    .player-list {
+        list-style: none;
+        padding-left: 15px;
+        font-size: 0.9em;
+        color: #ccc;
+        max-height: 150px;
+        overflow-y: auto;
+        margin-top: 5px;
+        border-left: 2px solid #444;
+        padding-left: 10px;
+    }
+
+    .player-list li {
+        margin-bottom: 3px;
+    }
+
+    .error-msg {
+        color: #ff8888;
+        font-style: italic;
+        font-size: 0.9em;
+    }
+
+    .game-thumbnail {
+        float: left;
+        margin-right: 20px;
+        margin-bottom: 20px;
+        width: 150px;
+        text-align: center;
+    }
+
+    .server-lists {
+        overflow: hidden;
+    }
+
+    .clear-float {
+        clear: both;
+    }
+
+    h3 {
+        margin-top: 25px;
+        color: #ccc;
+        border-bottom: 1px solid #555;
+        padding-bottom: 5px;
+    }
+
+    hr.section-divider {
+        margin: 30px 0;
+        border: 0;
+        border-top: 1px solid #444;
+    }
+</style>
+
+<div class="game-detail">
+    <div class="game-thumbnail">
+        {% if game.thumbnail %}
+        <img src="{{ game.thumbnail.url }}" alt="{{ game.name }}"
+            style="width: 100%; height: auto; border: 1px solid #444;">
+        {% else %}
+        <div
+            style="width: 150px; height: 200px; background-color: #333; display: flex; align-items: center; justify-content: center; color: #888; border: 1px solid #444;">
+            No Thumbnail</div>
+        {% endif %}
+        <p style="margin-top: 5px;">{{ game.name }}</p>
     </div>
+
+    <div class="server-lists">
+        <h3>Active Servers</h3>
+        {% if active_servers %}
+        {% for server in active_servers %}
+        {# --- CORRECTED FIELDSET FOR ACTIVE SERVERS --- #}
+        <fieldset class="server-box">
+            <legend>{{ server.name }}</legend>
+            <div class="server-details">
+                <p><strong>Podman Status:</strong> <span style="color: limegreen;">Online</span></p>
+                <p><strong>IP Address:</strong> {{ server.ip_address|default:"N/A" }}</p>
+                <p><strong>Port Mappings:</strong> {{ server.get_ports_display }}</p>
+                {# --- Live Stats Section (Checks Game Model Config & Query Result) --- #}
+                <div class="live-stats">
+                    {# Check if query succeeded and returned data #}
+                    {% if server.live_stats %}
+                    <p><strong>Live Status:</strong> <span style="color: lightgreen;">Reachable</span></p>
+                    {# Display common stats using consistent keys from the dictionary #}
+                    <p><strong>Server Name:</strong> {{ server.live_stats.server_name|default:"N/A" }}</p>
+                    <p><strong>Map:</strong> {{ server.live_stats.map_name|default:"N/A" }}</p>
+                    <p>
+                        <strong>Players:</strong>
+                        {{ server.live_stats.current_players|default:"0" }} /
+                            {{ server.live_stats.max_players|default:"?" }}
+                        {% if server.live_stats.bots is not None %} ({{ server.live_stats.bots }} bots){% endif %}
+                    </p>
+                    <p>
+                        <strong>Password:</strong>
+                        {% if server.live_stats.password_protected %}<span style="color: orange;">Yes</span>{% else
+                        %}No{% endif %}
+                    </p>
+                    {% if server.live_stats.vac_enabled is not None %}
+                    <p><strong>VAC Secured:</strong> {% if server.live_stats.vac_enabled %}Yes{% else %}No{% endif %}
+                    </p>
+                    {% endif %}
+                    {% if server.live_stats.players_list %} {# Raw list, e.g. from Q2 #}
+                    <p><strong>Player List (Raw):</strong></p>
+                    <ul class="player-list">
+                        {% for player_line in server.live_stats.players_list %}<li>{{ player_line }}</li>{% empty %}<li>
+                        </li>{% endfor %}
+                    </ul>
+                    {% endif %}
+
+                    {# Check if query was configured for this game (in Game model) but failed #}
+                    {% elif server.game.query_protocol != 'none' and server.game.default_query_port_key %}
+                    <p class="error-msg"><strong>Live Status:</strong> Unreachable (Timeout or Error)</p>
+                    {# Query was not configured for this game in the Game model #}
+                    {% else %}
+                    <p><em>(Live query not configured for {{ server.game.name }})</em></p>
+                    {% endif %}
+                </div>
+                {# --- End Live Stats Section --- #}
+            </div>
+        </fieldset>
+        {# --- END CORRECTED FIELDSET --- #}
+        {% endfor %}
+        {% else %}
+        <p>No active servers found for this game.</p>
+        {% endif %}
+
+        <hr class="section-divider"> {# Use HR for clearer separation #}
+
+        <h3>Dormant Servers</h3>
+        {% if dormant_servers %}
+        {% for server in dormant_servers %}
+        <fieldset class="server-box" style="opacity: 0.6;">
+            <legend>{{ server.name }}</legend>
+            <div class="server-details">
+                <p><strong>Podman Status:</strong> <span style="color: orange;">{{ server.status|title }}</span></p>
+                <p><strong>Image:</strong> {{ server.image }}</p>
+                <p><strong>Connect Info:</strong> {{ server.ip_address|default:"N/A" }} : {{ server.get_ports_display }}
+                </p>
+            </div>
+        </fieldset>
+        {% endfor %}
+        {% else %}
+        <p>No dormant servers found for this game.</p>
+        {% endif %}
+
+    </div> {# End server-lists #}
+
+    <div class="clear-float"></div> {# Clear float #}
+
+    <div class="game-info" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #444;">
+        <h4>About {{ game.name }}</h4>
+        <p>Genre: {{ game.genre|default:"N/A" }}</p>
+        {# TODO: Pull more data #}
+    </div>
+</div>
 {% endblock %}
